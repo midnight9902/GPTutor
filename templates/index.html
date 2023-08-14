@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Query Processor</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div id="main-content">
+    <h1>GPTutor</h1>
+    <form action="greet" method="post">
+        <p>What is your question?</p>
+        <br>
+        <input type="text" name="name_input">
+        <br>
+        <input type="submit" value="Ask" id="greet" class="button-ask">
+    </form>
+    {% if answer %}
+        <h2>Answer:</h2>
+        <p>{{ answer }}</p>
+    {% endif %}
+    </div>
+    <div id="container">
+  <div class="steam" id="steam1"> </div>
+  <div class="steam" id="steam2"> </div>
+  <div class="steam" id="steam3"> </div>
+  <div class="steam" id="steam4"> </div>
+
+  <div id="cup">
+    <div id="cup-body">
+      <div id="cup-shade"></div>
+    </div>
+    <div id="cup-handle"></div>
+  </div>
+
+  <div id="saucer"></div>
+
+  <div id="shadow"></div>
+</div>
+</body>
+</html>
