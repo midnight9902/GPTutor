@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, flash
-from paperqa import Docs
+from GPTutor import Docs
 import os
 
 os.environ['OPENAI_API_KEY'] = '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'
