@@ -186,6 +186,3 @@ def generate_course_data():
     # tutor_query(query, docs)
 
     return course_data
-
-
-generate_course_data()
