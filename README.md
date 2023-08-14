@@ -10,7 +10,7 @@ captioning info goes here
 
 To run on your personal computer:
 
-update the pdf file paths in app.py to your local filepaths
+update the pdf file paths in the generatedcoursedata function to your local filepaths
 
 open the anaconda prompt terminal
 
