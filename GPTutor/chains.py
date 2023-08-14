@@ -41,9 +41,6 @@ class FallbackLLMChain(LLMChain):
             return self.generate(input_list)
 
 
-# TODO: If upstream is fixed remove this
-
-
 class ExtendedHumanMessagePromptTemplate(HumanMessagePromptTemplate):
     prompt: BasePromptTemplate
 
@@ -56,12 +53,6 @@ def make_chain(
     system_prompt: str = default_system_prompt,
 ) -> FallbackLLMChain:
     if memory and len(memory.load_memory_variables({})["memory"]) > 0:
-        # we copy the prompt so we don't modify the original
-        # TODO: Figure out pipeline prompts to avoid this
-        # the problem with pipeline prompts is that
-        # the memory is a constant (or partial), not  a prompt
-        # and I cannot seem to make an empty prompt (or str)
-        # work as an input to pipeline prompt
         assert isinstance(
             prompt, PromptTemplate
         ), "Memory only works with prompt templates - see comment above"
@@ -93,14 +84,14 @@ def get_score(text: str) -> int:
     if score:
         s = int(score.group(1))
         if s > 10:
-            s = int(s / 10)  # sometimes becomes out of 100
+            s = int(s / 10)
         return s
     last_few = text[-15:]
     scores = re.findall(r"([0-9]+)", last_few)
     if scores:
         s = int(scores[-1])
         if s > 10:
-            s = int(s / 10)  # sometimes becomes out of 100
+            s = int(s / 10)
         return s
     if len(text) < 100:
         return 1
