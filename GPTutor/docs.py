@@ -54,8 +54,6 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
     memory_model: Optional[BaseChatMemory] = None
     jit_texts_index: bool = False
 
-    # TODO: Not sure how to get this to work
-    # while also passing mypy checks
     @validator("llm", "summary_llm")
     def check_llm(cls, v: Union[BaseLanguageModel, str]) -> BaseLanguageModel:
         if type(v) is str:
@@ -108,7 +106,6 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
         """Create a unique name given proposed name"""
         suffix = ""
         while docname + suffix in self.docnames:
-            # move suffix to next letter
             if suffix == "":
                 suffix = "a"
             else:
@@ -125,7 +122,6 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
         chunk_chars: int = 3000,
     ) -> Optional[str]:
         """Add a document to the collection."""
-        # just put in temp file and use existing method
         suffix = ".txt"
         if maybe_is_pdf(file):
             suffix = ".pdf"
@@ -178,13 +174,11 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
         if dockey is None:
             dockey = md5sum(path)
         if citation is None:
-            # skip system because it's too hesitant to answer
             cite_chain = make_chain(
                 prompt=self.prompts.cite,
                 llm=cast(BaseLanguageModel, self.summary_llm),
                 skip_system=True,
             )
-            # peak first chunk
             fake_doc = Doc(docname="", citation="", dockey=dockey)
             texts = read_doc(path, fake_doc, chunk_chars=chunk_chars, overlap=100)
             if len(texts) == 0:
@@ -194,12 +188,10 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
                 citation = f"Unknown, {os.path.basename(path)}, {datetime.now().year}"
 
         if docname is None:
-            # get first name and year from citation
             match = re.search(r"([A-Z][a-z]+)", citation)
             if match is not None:
                 author = match.group(1)  # type: ignore
             else:
-                # panicking - no word??
                 raise ValueError(
                     f"Could not parse docname from citation {citation}. "
                     "Consider just passing key explicitly - e.g. docs.py "
@@ -208,12 +200,11 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
             year = ""
             match = re.search(r"(\d{4})", citation)
             if match is not None:
-                year = match.group(1)  # type: ignore
+                year = match.group(1)
             docname = f"{author}{year}"
         docname = self._get_unique_name(docname)
         doc = Doc(docname=docname, citation=citation, dockey=dockey)
         texts = read_doc(path, doc, chunk_chars=chunk_chars, overlap=100)
-        # loose check to see if document was loaded
         if (
             len(texts) == 0
             or len(texts[0].text) < 10
@@ -231,10 +222,7 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
         texts: List[Text],
         doc: Doc,
     ) -> bool:
-        """Add chunked texts to the collection. This is useful if you have already chunked the texts yourself.
 
-        Returns True if the document was added, False if it was already in the collection.
-        """
         if doc.dockey in self.docs:
             return False
         if len(texts) == 0:
@@ -252,11 +240,11 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
             text_embeddings = cast(List[List[float]], [t.embeddings for t in texts])
         if self.texts_index is not None:
             try:
-                # TODO: Simplify - super weird
+
                 vec_store_text_and_embeddings = list(
                     map(lambda x: (x.text, x.embeddings), texts)
                 )
-                self.texts_index.add_embeddings(  # type: ignore
+                self.texts_index.add_embeddings( 
                     vec_store_text_and_embeddings,
                     metadatas=[t.dict(exclude={"embeddings", "text"}) for t in texts],
                 )
@@ -297,12 +285,12 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
         matches = self.doc_index.max_marginal_relevance_search(
             query, k=k + len(self.deleted_dockeys)
         )
-        # filter the matches
+
         matches = [
             m for m in matches if m.metadata["dockey"] not in self.deleted_dockeys
         ]
         try:
-            # for backwards compatibility (old pickled objects)
+
             matched_docs = [self.docs[m.metadata["dockey"]] for m in matches]
         except KeyError:
             matched_docs = [Doc(**m.metadata) for m in matches]
@@ -312,7 +300,7 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
             self.prompts.select, cast(BaseLanguageModel, self.llm), skip_system=True
         )
         papers = [f"{d.docname}: {d.citation}" for d in matched_docs]
-        result = await chain.arun(  # type: ignore
+        result = await chain.arun(
             question=query, papers="\n".join(papers), callbacks=get_callbacks("filter")
         )
         return set([d.dockey for d in matched_docs if d.docname in result])
@@ -331,7 +319,6 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
         try:
             self.texts_index = FAISS.load_local(self.index_path, self.embeddings)
         except Exception:
-            # they use some special exception type, but I don't want to import it
             self.texts_index = None
         self.doc_index = None
 
@@ -349,7 +336,6 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
             text_embeddings = [t.embeddings for t in texts]
             metadatas = [t.dict(exclude={"embeddings", "text"}) for t in texts]
             self.texts_index = FAISS.from_embeddings(
-                # wow adding list to the zip was tricky
                 text_embeddings=list(zip(raw_texts, text_embeddings)),
                 embedding=self.embeddings,
                 metadatas=metadatas,
@@ -371,7 +357,6 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
         disable_vector_search: bool = False,
         disable_summarization: bool = False,
     ) -> Answer:
-        # special case for jupyter notebooks
         if "get_ipython" in globals() or "google.colab" in sys.modules:
             import nest_asyncio
 
@@ -397,8 +382,8 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
     async def aget_evidence(
         self,
         answer: Answer,
-        k: int = 10,  # Number of vectors to retrieve
-        max_sources: int = 5,  # Number of scored contexts to use
+        k: int = 10,
+        max_sources: int = 5,
         marginal_relevance: bool = True,
         get_callbacks: CallbackFactory = lambda x: None,
         detailed_citations: bool = False,
@@ -424,26 +409,20 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
             matches = self.texts_index.similarity_search(
                 answer.question, k=_k, fetch_k=5 * _k
             )
-        # ok now filter
         if answer.dockey_filter is not None:
             matches = [
                 m
                 for m in matches
                 if m.metadata["doc"]["dockey"] in answer.dockey_filter
             ]
-
-        # check if it is deleted
         matches = [
             m
             for m in matches
             if m.metadata["doc"]["dockey"] not in self.deleted_dockeys
         ]
-
-        # check if it is already in answer
         cur_names = [c.text.name for c in answer.contexts]
         matches = [m for m in matches if m.metadata["name"] not in cur_names]
 
-        # now finally cut down
         matches = matches[:k]
 
         async def process(match):
@@ -454,12 +433,6 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
                 memory=self.memory_model,
                 system_prompt=self.prompts.system,
             )
-            # This is dangerous because it
-            # could mask errors that are important- like auth errors
-            # I also cannot know what the exception
-            # type is because any model could be used
-            # my best idea is see if there is a 4XX
-            # http code in the exception
             try:
                 citation = match.metadata["doc"]["citation"]
                 if detailed_citations:
@@ -577,8 +550,6 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
         if answer is None:
             answer = Answer(question=query, answer_length=length_prompt)
         if len(answer.contexts) == 0:
-            # this is heuristic - k and len(docs) are not
-            # comparable - one is chunks and one is docs
             if key_filter or (key_filter is None and len(self.docs) > k):
                 keys = await self.adoc_match(
                     answer.question, get_callbacks=get_callbacks
@@ -622,19 +593,18 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
                 question=answer.question,
                 callbacks=callbacks,
             )
-        # it still happens
+
         if "(Example2012)" in answer_text:
             answer_text = answer_text.replace("(Example2012)", "")
         for c in answer.contexts:
             name = c.text.name
             citation = c.text.doc.citation
-            # do check for whole key (so we don't catch Callahan2019a with Callahan2019)
             if name_in_text(name, answer_text):
                 bib[name] = citation
         bib_str = "\n\n".join(
-            [f"{i+1}. ({k}): {c}" for i, (k, c) in enumerate(bib.items())]
+            [f"{i+1}. ({k}): {c}" for i, (k, c) in enumerate(list(bib.items())[:2])]
         )
-        formatted_answer = f"Question: {answer.question}\n\n{answer_text}\n"
+        formatted_answer = answer_text
         if len(bib) > 0:
             formatted_answer += f"\nReferences\n\n{bib_str}\n"
         answer.answer = answer_text
@@ -650,7 +620,7 @@ class Docs(BaseModel, arbitrary_types_allowed=True, smart_union=True):
             )
             post = await chain.arun(**answer.dict(), callbacks=get_callbacks("post"))
             answer.answer = post
-            answer.formatted_answer = f"Question: {answer.question}\n\n{post}\n"
+            answer.formatted_answer = post
             if len(bib) > 0:
                 answer.formatted_answer += f"\nReferences\n\n{bib_str}\n"
         if self.memory_model is not None:
