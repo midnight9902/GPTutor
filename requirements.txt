@@ -44,3 +44,9 @@ urllib3==2.0.4
 Werkzeug==2.2.2
 wincertstore==0.2
 yarl==1.9.2
+PyMuPDF
+Pillow~=10.0.0
+paper-qa
+transformers
+pytesseract
+nltk
