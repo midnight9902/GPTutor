@@ -18,11 +18,7 @@ def parse_pdf_fitz(path: Path, doc: Doc, chunk_chars: int, overlap: int) -> List
         page = file.load_page(i)
         split += page.get_text("text", sort=True)
         pages.append(str(i + 1))
-        # split could be so long it needs to be split
-        # into multiple chunks. Or it could be so short
-        # that it needs to be combined with the next chunk.
-        while len(split) > chunk_chars:
-            # pretty formatting of pages (e.g. 1-3, 4, 5-7)
+         while len(split) > chunk_chars:
             pg = "-".join([pages[0], pages[-1]])
             texts.append(
                 Text(
@@ -51,11 +47,7 @@ def parse_pdf(path: Path, doc: Doc, chunk_chars: int, overlap: int) -> List[Text
     for i, page in enumerate(pdfReader.pages):
         split += page.extract_text()
         pages.append(str(i + 1))
-        # split could be so long it needs to be split
-        # into multiple chunks. Or it could be so short
-        # that it needs to be combined with the next chunk.
         while len(split) > chunk_chars:
-            # pretty formatting of pages (e.g. 1-3, 4, 5-7)
             pg = "-".join([pages[0], pages[-1]])
             texts.append(
                 Text(
