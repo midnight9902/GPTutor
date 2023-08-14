@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, flash
 from GPTutor import Docs
 import os
 
-os.environ['OPENAI_API_KEY'] = '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'
+os.environ.get('OPENAI_API_KEY')
 
 app = Flask(__name__)
 app.secret_key = "manbearpig_MUDMAN888"
