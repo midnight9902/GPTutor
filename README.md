@@ -10,18 +10,18 @@ captioning info goes here
 
 To run on your personal computer:
 
-update the pdf file paths in the generatedcoursedata function to your local filepaths
+1. update the pdf file paths in the generatedcoursedata function to your local filepaths
 
-open the anaconda prompt terminal
+2. open the anaconda prompt terminal
 
-create a virtual environment with "conda activate venv"
+3. create a virtual environment with "conda activate venv"
 
-navigate to where the sayHello folder is stored with "cd (filepath)"
+4. navigate to where the sayHello folder is stored with "cd (filepath)"
 
-install flask with "pip install flask"
+5. install flask with "pip install flask"
 
-run the command "set OPENAI_API_KEY=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"
+6. run the command "set OPENAI_API_KEY=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"
 
-run the command "flask run"
+7. run the command "flask run"
 
 go to your browser and navigate to "http://127.0.0.1:5000/hello"
