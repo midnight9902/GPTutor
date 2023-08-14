@@ -5,7 +5,8 @@ Of the 50 questions we asked, roughly 5 from each lecture, it returned 46 correc
 The 4 results that were not helpful to continued learning occured when the model pulled words from slides that were primarily dominated by images
 
 
-captioning info goes here
+Image Extraction, Summary Generator:
+For extracting the images from the PDF and text files, PyMuPDF, Pillow, and Fitz libraries were used. Once the images were extracted and seperated into directories based on the file it was extracted from, the images were sent individually to generate summaries so that they could be sent to PaperQA model. Unfortuantely, GPT-4's multimodal input functionality is not available to most developers; therefore, this project could not utilize OpenAI's API to generate image summaries. Instead, GPTutor uses SaleForce's BLIP Pretrained model and Tesseract OCR model to generate image captions. Once the images are passed those two models, the captions are cleaned up using the NLTK and re libraries. The image summaries are saved in text files and sent to PaperQA's model for a final output to the student.
 
 
 To run on your personal computer:
