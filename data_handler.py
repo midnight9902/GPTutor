@@ -26,6 +26,8 @@ def tutor_query(query, docs):
 
 
 def extract_images(my_docs):
+    limit = 2
+    counter = 0
     # Extract images from the given PDF documents
     file_paths = my_docs
     image_paths = []
@@ -70,6 +72,10 @@ def extract_images(my_docs):
 
         # Extract and save the images
         for i, image_info in enumerate(images_lst, start=1):
+            if counter > limit:
+                break
+            else:
+                counter += 1
             # extract the image object number
             xref = image_info[0][0][0]
             # Extract the image using the xref number
@@ -112,15 +118,18 @@ def generate_img_summaries(image_paths, captioner, my_config):
     # Traverse through each file's saved images and generate captions for them
     for path in image_paths:
         img_files_lst = os.listdir(path)
-        print("Path: ", path)
-        print("Image_file_list: ", img_files_lst)
-        print()
+        # print("Path: ", path)
+        # print("Image_file_list: ", img_files_lst)
+        # print()
         for img in img_files_lst:
-            print("img: ", img)
+            # print("img: ", img)
             img_path = os.path.join(path, img)
-            print("image_path: ", img_path)
+            # print("image_path: ", img_path)
             # Generate the first half of the caption from the transformer model
-            first_half = captioner(img_path)[0]['generated_text']
+            try:
+                first_half = captioner(img_path)[0]['generated_text']
+            except:
+                first_half = ""
             # "C:\data\Lecture-1-Summer2023\images\Lecture-1-Summer2023_pg_19.jpeg"
             # Generate the second half of the caption from the Tesseract OCR model
             img_text = pytesseract.image_to_string(Image.open(img_path), config=my_config)
@@ -146,11 +155,20 @@ def generate_img_summaries(image_paths, captioner, my_config):
 
 def convert_captions2txt(img_captions):  # input: dictionary
     img_data = []
+    # print("Here 1")
     for img_path in img_captions.keys():
+        # print("here 2")
         caption = img_captions[img_path]
-        safe_filename = ''.join([char if char.isalnum() else '_' for char in caption])
+        img_ext = ['.jpg', '.png', '.jpeg']
+        safe_filename = ''.join([char if char.isalnum() or char == '.' else '_' for char in img_path])
+        # find the index of the period prior to the extension
+        sub_ind = safe_filename.index('.')
+        safe_filename = re.sub(safe_filename[sub_ind:], '.txt', safe_filename)
+        safe_filename = os.getcwd() + '/' + safe_filename
+        # print("Safe filename: ", safe_filename)
+        # print()
         img_data.append(safe_filename)
-        with open(f"{safe_filename}.txt", "w") as f:
+        with open(safe_filename, "w") as f:
             f.write(caption)
 
     return img_data
@@ -166,7 +184,7 @@ def generate_course_data():
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
     query = "What does it mean if a model is overfitting?"
-    os.environ['OPENAI_API_KEY'] = 'sk-qPAJXXO0GxyPButPa9b1T3BlbkFJbHXoxb7vrgf5P2HxRRn'
+    # os.environ['OPENAI_API_KEY'] = "Insert API key here"
 
     # course_docs = [r'data/lecture_slides/Lecture-1-Summer2023.pdf', r'data/lecture_slides/Lecture-2-Summer2023.pdf',
     #                r'data/lecture_slides/Lecture-3-Summer2023.pdf', r'data/lecture_slides/Lecture-4-Summer2023.pdf',
@@ -178,11 +196,15 @@ def generate_course_data():
     image_paths = extract_images(course_docs)
     # print(image_paths)
     img_captions = generate_img_summaries(image_paths, captioner, my_config)
-    print(img_captions)
+    # print("Image captions: ", img_captions)
     img_data = convert_captions2txt(img_captions)
     course_data = course_docs + img_data
-    # docs = load_documents(course_data)
+    # print(course_data)
+    docs = load_documents(course_data)
 
     # tutor_query(query, docs)
 
     return course_data
+
+
+# generate_course_data()
