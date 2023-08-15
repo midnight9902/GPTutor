@@ -21,7 +21,7 @@ To run on your personal computer:
 
 5. install flask with "pip install flask"
 
-6. run the command "set OPENAI_API_KEY=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"
+6. run the command "set OPENAI_API_KEY="Insert your OpenAI API Key Here"
 
 7. run the command "flask run"
 
