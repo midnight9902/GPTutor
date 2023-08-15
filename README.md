@@ -11,7 +11,7 @@ For extracting the images from the PDF and text files, PyMuPDF, Pillow, and Fitz
 
 To run on your personal computer:
 
-1. update the pdf file paths in the generatedcoursedata function to your local filepaths
+1. update the pdf file paths in the generate_course_data() function to your local filepaths (data_handler.py)
 
 2. open the anaconda prompt terminal
 
