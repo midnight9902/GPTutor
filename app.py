@@ -8,7 +8,7 @@ os.environ['OPENAI_API_KEY'] = 'sk-qPAJXXO0GxyPButPa9b1T3BlbkFJbHXoxb7vrgf5P2HxR
 app = Flask(__name__)
 app.secret_key = "manbearpig_MUDMAN888"
 
-my_docs = course_data
+my_docs = generate_course_data()
 docs = Docs()
 for d in my_docs:
     docs.add(d)
