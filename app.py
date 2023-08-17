@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, flash
 from paperqa import Docs
 import os
-import data_handler.py
+from data_handler import generate_course_data
 
 os.environ['OPENAI_API_KEY'] = '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'
 
